@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="ui.details.DetailFragment">
+
+    <item
+        android:id="@+id/share"
+        android:orderInCategory="200"
+        android:title="@string/share"
+        android:icon="@drawable/share_svgrepo_com"
+        app:showAsAction="ifRoom"/>
+</menu>
