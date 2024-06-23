@@ -9,6 +9,6 @@
         android:id="@+id/share"
         android:orderInCategory="200"
         android:title="@string/share"
-        android:icon="@drawable/share_svgrepo_com"
+        android:icon="@drawable/share"
         app:showAsAction="ifRoom"/>
 </menu>

@@ -19,7 +19,7 @@ class DetailViewModel @Inject constructor(
 
 
     suspend fun getNews(category: Int?) {
-        val result = repository.getNews(1,10, category)
+        val result = repository.getNews(2,10, category)
         if (result.isSuccessful){
             liveData.postValue(result.body())
         }

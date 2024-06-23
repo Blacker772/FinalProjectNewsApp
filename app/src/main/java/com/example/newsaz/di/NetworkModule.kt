@@ -75,7 +75,6 @@ object NetworkModule {
         return interceptor
     }
 
-
     @Singleton
     @Provides
     fun providesApiService(retrofit: Retrofit): ApiService {

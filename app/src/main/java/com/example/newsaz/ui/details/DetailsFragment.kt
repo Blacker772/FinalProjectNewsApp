@@ -43,7 +43,6 @@ class DetailsFragment : Fragment() {
         val link = arguments?.getString("link")
         val category = arguments?.getInt("categoryId")
 
-
         //Получение списка "другие новости"
         lifecycleScope.launch {
             viewModel.getNews(category)
@@ -53,7 +52,7 @@ class DetailsFragment : Fragment() {
         }
 
         //Действие при нажатии на кнопку "Назад"
-        binding.toolbar.setNavigationIcon(R.drawable.ic_left)
+        binding.toolbar.setNavigationIcon(R.drawable.arrow)
         binding.toolbar.setNavigationOnClickListener {
             parentFragmentManager.popBackStack()
         }
@@ -110,6 +109,7 @@ class DetailsFragment : Fragment() {
         }
     }
 
+    //Инициализация RV
     private fun initRV() {
         binding.rvOtherNews.adapter = otherAdapter
         binding.rvOtherNews.layoutManager = LinearLayoutManager(

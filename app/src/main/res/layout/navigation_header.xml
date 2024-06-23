@@ -24,12 +24,12 @@
         android:layout_marginTop="20dp"
         android:background="@null"
         android:src="@drawable/ic_az"
-        app:layout_constraintEnd_toStartOf="@id/btBritain"
+        app:layout_constraintEnd_toStartOf="@id/btEnglish"
         app:layout_constraintStart_toEndOf="@id/btRussian"
         app:layout_constraintTop_toTopOf="parent" />
 
     <com.google.android.material.imageview.ShapeableImageView
-        android:id="@+id/btBritain"
+        android:id="@+id/btEnglish"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@null"
@@ -46,7 +46,7 @@
         android:backgroundTint="#D3D3D3"
         android:drawableLeft="@drawable/ic_search"
         android:gravity="center_vertical"
-        android:text="@string/search"
+        android:text="@string/searchEn"
         android:textSize="17sp"
         android:textColor="@color/black"
         app:layout_constraintEnd_toEndOf="parent"

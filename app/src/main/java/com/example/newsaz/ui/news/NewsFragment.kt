@@ -66,7 +66,7 @@ class NewsFragment : Fragment() {
             findNavController().navigate(R.id.action_newsFragment_to_searchFragment)
         }
 
-        //Слушатель нажатий на кнопку азербайджанского языка
+        //Слушатель нажатий на кнопку Азербайджанского языка
         val azButton = header.findViewById<ImageView>(R.id.btAze)
         azButton.setOnClickListener {
             if (Constants.LANGUAGE == "az") {
@@ -92,8 +92,8 @@ class NewsFragment : Fragment() {
             }
         }
 
-        //Слушатель нажатий на кнопку английского языка
-        val enButton = header.findViewById<ImageView>(R.id.btBritain)
+        //Слушатель нажатий на кнопку Английского языка
+        val enButton = header.findViewById<ImageView>(R.id.btEnglish)
         enButton.setOnClickListener {
             if (Constants.LANGUAGE == "en") {
                 Toast.makeText(requireContext(), "Этот язык уже выбран", Toast.LENGTH_SHORT).show()
@@ -118,8 +118,7 @@ class NewsFragment : Fragment() {
             }
         }
 
-
-        //Слушатель нажатий на кнопку русского языка
+        //Слушатель нажатий на кнопку Русского языка
         val ruButton = header.findViewById<ImageView>(R.id.btRussian)
         ruButton.setOnClickListener {
             if (Constants.LANGUAGE == "ru") {
@@ -164,7 +163,6 @@ class NewsFragment : Fragment() {
                 binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
             }
         }
-
 
         //Загрузка категорий
         lifecycleScope.launch {
@@ -227,9 +225,11 @@ class NewsFragment : Fragment() {
             is UiState.Loading -> {
                 binding.progressBar.isVisible = state.isLoading
             }
+
             is UiState.Error -> {
                 Toast.makeText(requireContext(), "${state.message}", Toast.LENGTH_SHORT).show()
             }
+
             is UiState.Data -> {
                 newsAdapter.submitData(state.data)
                 binding.progressBar.isVisible = state.isLoading
@@ -237,6 +237,3 @@ class NewsFragment : Fragment() {
         }
     }
 }
-
-
-
