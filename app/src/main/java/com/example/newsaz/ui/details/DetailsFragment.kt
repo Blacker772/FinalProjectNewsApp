@@ -12,14 +12,16 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.transition.TransitionInflater
 import coil.load
+import com.example.newsaz.Constants
 import com.example.newsaz.R
-import com.example.newsaz.data.model.newsmodel.NewsListModel
 import com.example.newsaz.databinding.FragmentDetailsBinding
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
 
 @AndroidEntryPoint
 class DetailsFragment : Fragment() {
@@ -27,9 +29,15 @@ class DetailsFragment : Fragment() {
     private lateinit var binding: FragmentDetailsBinding
     private val viewModel: DetailViewModel by viewModels()
     private val otherAdapter = OtherNewsAdapter()
+    private val args: DetailsFragmentArgs by navArgs()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         binding = FragmentDetailsBinding.inflate(inflater, container, false)
+
+        val animation = TransitionInflater.from(requireContext()).inflateTransition(android.R.transition.move)
+        sharedElementEnterTransition = animation
+        postponeEnterTransition(200, TimeUnit.MILLISECONDS)
+
         return binding.root
     }
 
@@ -39,9 +47,11 @@ class DetailsFragment : Fragment() {
         initRV()
 
         //Получение данных из аргументов
-        val id = arguments?.getInt("id")
-        val link = arguments?.getString("link")
-        val category = arguments?.getInt("categoryId")
+        val category = args.news.categoryId
+        val id = args.news.id
+        val link = args.news.link
+        val news = args.news.image
+        binding.sivImage.transitionName = news
 
         //Получение списка "другие новости"
         lifecycleScope.launch {
@@ -53,8 +63,10 @@ class DetailsFragment : Fragment() {
 
         //Действие при нажатии на кнопку "Назад"
         binding.toolbar.setNavigationIcon(R.drawable.arrow)
+
+        //Кнопка "Назад"
         binding.toolbar.setNavigationOnClickListener {
-            parentFragmentManager.popBackStack()
+            findNavController().popBackStack()
         }
 
         //Получение данных новости по id

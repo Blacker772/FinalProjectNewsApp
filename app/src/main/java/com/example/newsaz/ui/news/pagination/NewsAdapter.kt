@@ -7,6 +7,7 @@ import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
+import com.example.newsaz.R
 import com.example.newsaz.data.model.newsmodel.NewsListModel
 import com.example.newsaz.databinding.NewsItemBinding
 import java.time.ZoneId
@@ -14,9 +15,10 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-class NewsAdapter : PagingDataAdapter<NewsListModel, NewsAdapter.PageViewHolder>(DIFF_UTIL) {
+class NewsAdapter(private val onClickListener: OnClickListener) : PagingDataAdapter<NewsListModel, NewsAdapter.PageViewHolder>(DIFF_UTIL) {
 
     private var onItemClick:((news: NewsListModel) -> Unit)? = null
+
     fun onItemClickListener(onItemClick: (news: NewsListModel) -> Unit){
         this.onItemClick = onItemClick
     }
@@ -30,9 +32,20 @@ class NewsAdapter : PagingDataAdapter<NewsListModel, NewsAdapter.PageViewHolder>
     override fun onBindViewHolder(holder: PageViewHolder, position: Int) {
         getItem(position)?.let { holder.bind(it, onItemClick) }
         holder.setIsRecyclable(false)
+        val currentData = getItem(position)
+        if(currentData != null){
+            holder.binding.apply {
+                sivImage.load(currentData.image)
+                sivImage.transitionName = currentData.image
+                root.setOnClickListener{
+                    onClickListener.onClick(currentData, sivImage)
+                }
+
+            }
+        }
     }
 
-    inner class PageViewHolder(private val binding: NewsItemBinding) :
+    inner class PageViewHolder( val binding: NewsItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(data: NewsListModel, onItemClick: ((news: NewsListModel) -> Unit)?) {
             binding.tvTitle.text = data.title
@@ -63,7 +76,6 @@ class NewsAdapter : PagingDataAdapter<NewsListModel, NewsAdapter.PageViewHolder>
             ): Boolean {
                 return oldItem.id == newItem.id &&
                         oldItem.title == newItem.title
-
             }
         }
     }
@@ -83,5 +95,9 @@ class NewsAdapter : PagingDataAdapter<NewsListModel, NewsAdapter.PageViewHolder>
             val date = localZonedDateTime.format(DateTimeFormatter.ofPattern("dd MMMM, HH:mm"))
             return date
         }
+    }
+
+    class OnClickListener(val clickListener: (NewsListModel, ImageView) -> Unit) {
+        fun onClick(data: NewsListModel, imageView: ImageView) = clickListener(data, imageView)
     }
 }

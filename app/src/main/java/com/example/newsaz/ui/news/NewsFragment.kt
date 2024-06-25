@@ -2,6 +2,7 @@ package com.example.newsaz.ui.news
 
 import android.content.Context
 import android.os.Bundle
+import android.transition.TransitionInflater
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -10,13 +11,17 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.Toast
-import androidx.core.os.bundleOf
 import androidx.core.view.GravityCompat
+import androidx.core.view.doOnPreDraw
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.NavDirections
+import androidx.navigation.fragment.FragmentNavigatorExtras
 import androidx.navigation.fragment.findNavController
 import androidx.paging.LoadState
+import androidx.paging.PagingData
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.newsaz.Constants
 import com.example.newsaz.R
@@ -27,23 +32,42 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class NewsFragment : Fragment() {
 
     private lateinit var binding: FragmentNewsBinding
-    private val newsAdapter = NewsAdapter()
+    private lateinit var newsAdapter: NewsAdapter
     private val viewModel: NewsViewModel by viewModels()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         binding = FragmentNewsBinding.inflate(inflater, container, false)
+        initRV()
+        Log.d("LANGUAGE", "onCreateView: ${Constants.LANGUAGE}")
+        //Анимация перехода
+        val animation = TransitionInflater.from(requireContext()).inflateTransition(android.R.transition.move)
+        sharedElementEnterTransition = animation
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        //Загрузка новостей при открытии приложения
+        lifecycleScope.launch {
+            viewModel.uiState.collectLatest {
+                onChangeState(it)
+            }
+        }
+
+        //Откладывает анимацию, пока информация не прогрузится
+        postponeEnterTransition()
+
+        //Запускает отложенную анимацию
+        binding.rvListNews.doOnPreDraw {
+            startPostponedEnterTransition()
+        }
 
         //Создал SharedPreferences для хранения выбранного языка
         val sharedPreferences = requireContext().getSharedPreferences("my_prefs", Context.MODE_PRIVATE)
@@ -53,9 +77,6 @@ class NewsFragment : Fragment() {
 
         //Записываю выбранный язык в константу
         Constants.LANGUAGE = selectedLanguage
-
-        //Инициализация RV
-        initRV()
 
         //Доступ к header
         val header = binding.navigationView.getHeaderView(0)
@@ -157,7 +178,7 @@ class NewsFragment : Fragment() {
         }
         lifecycleScope.launch {
             // Обработка состояния загрузки адаптера
-            newsAdapter.loadStateFlow.collectLatest { loadState ->
+            newsAdapter.loadStateFlow?.collectLatest { loadState ->
                 // Отображаем индикатор загрузки, если данные загружаются
                 val isLoading = loadState.refresh is LoadState.Loading
                 binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
@@ -200,22 +221,23 @@ class NewsFragment : Fragment() {
 
     //Метод для инициализации RV
     private fun initRV() {
-        binding.rvListNews.adapter = newsAdapter
-        binding.rvListNews.layoutManager = LinearLayoutManager(
-            requireContext(),
-            LinearLayoutManager.VERTICAL,
-            false
-        )
-
-        newsAdapter.onItemClickListener {
-            val newsId = bundleOf(
-                "id" to it.id,
-                "link" to it.link,
-                "source" to it.source,
-                "categoryId" to it.categoryId,
-                "image" to it.image
+        val actionListener = NewsAdapter.OnClickListener { newsDataModel, imageView ->
+            val direction: NavDirections =
+                NewsFragmentDirections.actionNewsFragmentToDetailsFragment(newsDataModel)
+            val extras = FragmentNavigatorExtras(
+                imageView to newsDataModel.image
             )
-            findNavController().navigate(R.id.action_newsFragment_to_detailsFragment, newsId)
+            findNavController().navigate(direction, extras)
+        }
+
+        binding.rvListNews.apply {
+            newsAdapter = NewsAdapter(actionListener)
+            layoutManager = LinearLayoutManager(
+                requireContext(),
+                LinearLayoutManager.VERTICAL,
+                false
+            )
+            adapter = newsAdapter
         }
     }
 

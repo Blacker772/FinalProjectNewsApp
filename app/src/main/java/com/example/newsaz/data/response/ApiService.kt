@@ -15,7 +15,7 @@ interface ApiService {
     suspend fun getNews(
         @Query("page") page: Int,
         @Query("items") item: Int,
-        @Query("category_id") categoryId: Int?
+        @Query("category_id") categoryId: Int?,
     ): Response<List<NewsListModel>>
 
     //Запрос на получение новостей через поиск

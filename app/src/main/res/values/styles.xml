@@ -7,4 +7,17 @@
         <item name="android:textStyle">bold</item>
     </style>
 
+
+    <style name="CustomSearchView" parent="Widget.AppCompat.SearchView">
+        <item name="queryHint">Search</item>
+        <item name="searchIcon">@null</item> <!-- Убирает иконку поиска -->
+        <item name="closeIcon">@null</item> <!-- Убирает иконку закрытия -->
+        <item name="submitBackground">@null</item> <!-- Убирает фон кнопки отправки -->
+        <item name="goIcon">@null</item> <!-- Убирает иконку "Go" -->
+        <item name="voiceIcon">@null</item> <!-- Убирает иконку голосового ввода -->
+        <item name="searchHintIcon">@null</item> <!-- Убирает иконку подсказки поиска -->
+        <item name="queryBackground">@color/ColorRed</item> <!-- Устанавливает фон поиска -->
+        <item name="searchPrefixText">@android:color/white</item> <!-- Устанавливает цвет текста поиска -->
+        <item name="android:background">@color/ColorRed</item> <!-- Устанавливает фон searchView -->
+    </style>
 </resources>
