@@ -1,25 +1,37 @@
 package com.example.newsaz.ui.details
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebViewClient
+import android.widget.Toast
 import androidx.core.os.bundleOf
+import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
+import androidx.paging.PagingData
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.transition.TransitionInflater
 import coil.load
 import com.example.newsaz.R
-import com.example.newsaz.data.model.newsmodel.NewsListModel
+
 import com.example.newsaz.databinding.FragmentDetailsBinding
+import com.example.newsaz.ui.news.UiState
+import com.example.newsaz.ui.news.pagination.NewsAdapter
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
 
 @AndroidEntryPoint
 class DetailsFragment : Fragment() {
@@ -27,34 +39,35 @@ class DetailsFragment : Fragment() {
     private lateinit var binding: FragmentDetailsBinding
     private val viewModel: DetailViewModel by viewModels()
     private val otherAdapter = OtherNewsAdapter()
+    private val args: DetailsFragmentArgs by navArgs()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         binding = FragmentDetailsBinding.inflate(inflater, container, false)
+        initRV()
+        animation(requireContext())
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        initRV()
-
         //Получение данных из аргументов
-        val id = arguments?.getInt("id")
-        val link = arguments?.getString("link")
-        val category = arguments?.getInt("categoryId")
+        val category = args.news.categoryId
+        val id = args.news.id
+        val link = args.news.link
+        val news = args.news.image
+        binding.sivImage.transitionName = news
 
         //Получение списка "другие новости"
         lifecycleScope.launch {
             viewModel.getNews(category)
-            viewModel.liveData.observe(viewLifecycleOwner) {
-                otherAdapter.submitList(it)
+            viewModel.data.collectLatest {
+                onChangeState(it)
             }
         }
 
-        //Действие при нажатии на кнопку "Назад"
-        binding.toolbar.setNavigationIcon(R.drawable.arrow)
-        binding.toolbar.setNavigationOnClickListener {
-            parentFragmentManager.popBackStack()
+        //Кнопка "Назад"
+        binding.btBack.setOnClickListener {
+            findNavController().popBackStack()
         }
 
         //Получение данных новости по id
@@ -71,19 +84,14 @@ class DetailsFragment : Fragment() {
             }
         }
 
-        //Действие при нажатии на кнопку "Поделиться"
-        binding.toolbar.setOnMenuItemClickListener {
-            when (it.itemId) {
-                R.id.share -> {
-                    val intentShare = Intent(Intent.ACTION_SEND)
-                    intentShare.type = "text/plain"
-                    intentShare.putExtra(Intent.EXTRA_TEXT, link)
-                    startActivity(Intent.createChooser(intentShare, "News..."))
-                    true
-                }
-                else -> false
-            }
+        //кнопка "Поделиться"
+        binding.btShare.setOnClickListener {
+            val intentShare = Intent(Intent.ACTION_SEND)
+            intentShare.type = "text/plain"
+            intentShare.putExtra(Intent.EXTRA_TEXT, link)
+            startActivity(Intent.createChooser(intentShare, "News..."))
         }
+
     }
 
     //Настройка webView
@@ -131,5 +139,32 @@ class DetailsFragment : Fragment() {
                 navigate(R.id.detailsFragment, newsId)
             }
         }
+    }
+
+    //Обработка состояния
+    private fun onChangeState(state: UiStateDetails) {
+        when (state) {
+            is UiStateDetails.Loading -> {
+                binding.progressBar.isVisible = state.isLoading
+            }
+
+            is UiStateDetails.Error -> {
+                Toast.makeText(requireContext(), "${state.message}", Toast.LENGTH_SHORT).show()
+            }
+
+            is UiStateDetails.Data -> {
+                otherAdapter.submitList(state.data)
+                binding.progressBar.isVisible = state.isLoading
+            }
+
+            is UiStateDetails.None -> ""
+        }
+    }
+
+    //Метод для анимации
+    private fun animation(context: Context) {
+        val anim = TransitionInflater.from(context).inflateTransition(android.R.transition.move)
+        sharedElementEnterTransition = anim
+        postponeEnterTransition(200, TimeUnit.MILLISECONDS)
     }
 }

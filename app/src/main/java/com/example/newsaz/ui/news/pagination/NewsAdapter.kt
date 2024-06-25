@@ -7,6 +7,7 @@ import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
+import com.example.newsaz.R
 import com.example.newsaz.data.model.newsmodel.NewsListModel
 import com.example.newsaz.databinding.NewsItemBinding
 import java.time.ZoneId
@@ -14,12 +15,7 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-class NewsAdapter : PagingDataAdapter<NewsListModel, NewsAdapter.PageViewHolder>(DIFF_UTIL) {
-
-    private var onItemClick:((news: NewsListModel) -> Unit)? = null
-    fun onItemClickListener(onItemClick: (news: NewsListModel) -> Unit){
-        this.onItemClick = onItemClick
-    }
+class NewsAdapter(private val onClickListener: OnClickListener? = null) : PagingDataAdapter<NewsListModel, NewsAdapter.PageViewHolder>(DIFF_UTIL) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PageViewHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -28,13 +24,23 @@ class NewsAdapter : PagingDataAdapter<NewsListModel, NewsAdapter.PageViewHolder>
     }
 
     override fun onBindViewHolder(holder: PageViewHolder, position: Int) {
-        getItem(position)?.let { holder.bind(it, onItemClick) }
-        holder.setIsRecyclable(false)
+        getItem(position)?.let { holder.bind(it) }
+        holder.setIsRecyclable(true)
+        val currentData = getItem(position)
+        if(currentData != null){
+            holder.binding.apply {
+                sivImage.load(currentData.image)
+                sivImage.transitionName = currentData.image
+                root.setOnClickListener{
+                    onClickListener?.onClick(currentData, sivImage)
+                }
+            }
+        }
     }
 
-    inner class PageViewHolder(private val binding: NewsItemBinding) :
+    inner class PageViewHolder(val binding: NewsItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        fun bind(data: NewsListModel, onItemClick: ((news: NewsListModel) -> Unit)?) {
+        fun bind(data: NewsListModel) {
             binding.tvTitle.text = data.title
             binding.sivImage.transitionName = data.image
             binding.sivImage.load(data.image){
@@ -42,9 +48,6 @@ class NewsAdapter : PagingDataAdapter<NewsListModel, NewsAdapter.PageViewHolder>
                 crossfade(100)
             }
             binding.tvPublishedTime.text = convertDate(data.date)
-            binding.newsItem.setOnClickListener {
-                onItemClick?.invoke(data)
-            }
         }
     }
 
@@ -54,16 +57,16 @@ class NewsAdapter : PagingDataAdapter<NewsListModel, NewsAdapter.PageViewHolder>
                 oldItem: NewsListModel,
                 newItem: NewsListModel
             ): Boolean {
-                return oldItem.title == newItem.title
+                return oldItem.title == newItem.title &&
+                        oldItem.image == newItem.image
             }
 
             override fun areContentsTheSame(
                 oldItem: NewsListModel,
                 newItem: NewsListModel
             ): Boolean {
-                return oldItem.id == newItem.id &&
-                        oldItem.title == newItem.title
-
+                return oldItem.title == newItem.title &&
+                        oldItem.link == newItem.link
             }
         }
     }
@@ -83,5 +86,9 @@ class NewsAdapter : PagingDataAdapter<NewsListModel, NewsAdapter.PageViewHolder>
             val date = localZonedDateTime.format(DateTimeFormatter.ofPattern("dd MMMM, HH:mm"))
             return date
         }
+    }
+
+    class OnClickListener(val clickListener: (NewsListModel, ImageView) -> Unit) {
+        fun onClick(data: NewsListModel, imageView: ImageView) = clickListener(data, imageView)
     }
 }

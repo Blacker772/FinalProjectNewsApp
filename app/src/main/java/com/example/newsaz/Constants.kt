@@ -1,5 +1,4 @@
 package com.example.newsaz
-
 object Constants {
     const val BASE_URL = "https://axar.az/"
     const val API_KEY = "UGcGqbRn4qbiztAbtYUNl1w04SSN9v64uWW9YYiWgWmIrwI3KOweVLYQ8k9n6hx8"

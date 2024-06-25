@@ -9,13 +9,12 @@ import retrofit2.HttpException
 class NewsPagingSource(
     private val repository: Repository,
     private val category: Int?
-): PagingSource<Int, NewsListModel>() {
+) : PagingSource<Int, NewsListModel>() {
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, NewsListModel> {
         return try {
             val currentPage = params.key ?: 1
-
-            val response = repository.getNews(currentPage,10, category)
+            val response = repository.getNewsRepo(currentPage, 10, category)
             val data = response.body()
             val responseData = mutableListOf<NewsListModel>()
             data?.let { responseData.addAll(it) }
@@ -25,11 +24,9 @@ class NewsPagingSource(
                 prevKey = if (currentPage == 1) null else -1,
                 nextKey = currentPage.plus(1)
             )
-
-        }catch (e:Exception){
+        } catch (e: Exception) {
             LoadResult.Error(e)
-
-        }catch (http: HttpException){
+        } catch (http: HttpException) {
             LoadResult.Error(http)
         }
     }
