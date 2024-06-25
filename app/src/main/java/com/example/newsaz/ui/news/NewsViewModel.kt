@@ -11,36 +11,20 @@ import androidx.paging.cachedIn
 import com.example.newsaz.data.model.categorymodel.NewsCategoryModel
 import com.example.newsaz.data.model.newsmodel.NewsListModel
 import com.example.newsaz.repository.Repository
-import com.example.newsaz.ui.UiState
 import com.example.newsaz.ui.news.pagination.NewsPagingSource
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class NewsViewModel @Inject constructor(
     private val repository: Repository
 ) : ViewModel() {
-
-    //Метод получения первоначального списка нвостей
-    fun getNews(category: Int?): Flow<PagingData<NewsListModel>> {
-        return Pager(
-            PagingConfig(1, prefetchDistance = 10, enablePlaceholders = false)
-        ) {
-            NewsPagingSource(repository, category)
-        }
-            .flow
-            .cachedIn(viewModelScope)
-    }
 
     //Создаю переменную для хранения состояния
     private val result: Flow<PagingData<NewsListModel>> = getNews(null)
@@ -57,6 +41,16 @@ class NewsViewModel @Inject constructor(
             initialValue = UiState.Loading(true)
         )
 
+    //Метод получения первоначального списка нвостей
+    fun getNews(category: Int?): Flow<PagingData<NewsListModel>> {
+        return Pager(
+            PagingConfig(1, prefetchDistance = 10, enablePlaceholders = false)
+        ) {
+            NewsPagingSource(repository, category)
+        }
+            .flow
+            .cachedIn(viewModelScope)
+    }
 
     //LiveData для хранения списка категорий
     private val _liveData = MutableLiveData<List<NewsCategoryModel>>()
@@ -70,5 +64,3 @@ class NewsViewModel @Inject constructor(
         }
     }
 }
-
-

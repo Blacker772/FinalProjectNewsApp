@@ -15,13 +15,7 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-class NewsAdapter(private val onClickListener: OnClickListener) : PagingDataAdapter<NewsListModel, NewsAdapter.PageViewHolder>(DIFF_UTIL) {
-
-    private var onItemClick:((news: NewsListModel) -> Unit)? = null
-
-    fun onItemClickListener(onItemClick: (news: NewsListModel) -> Unit){
-        this.onItemClick = onItemClick
-    }
+class NewsAdapter(private val onClickListener: OnClickListener? = null) : PagingDataAdapter<NewsListModel, NewsAdapter.PageViewHolder>(DIFF_UTIL) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PageViewHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -30,24 +24,23 @@ class NewsAdapter(private val onClickListener: OnClickListener) : PagingDataAdap
     }
 
     override fun onBindViewHolder(holder: PageViewHolder, position: Int) {
-        getItem(position)?.let { holder.bind(it, onItemClick) }
-        holder.setIsRecyclable(false)
+        getItem(position)?.let { holder.bind(it) }
+        holder.setIsRecyclable(true)
         val currentData = getItem(position)
         if(currentData != null){
             holder.binding.apply {
                 sivImage.load(currentData.image)
                 sivImage.transitionName = currentData.image
                 root.setOnClickListener{
-                    onClickListener.onClick(currentData, sivImage)
+                    onClickListener?.onClick(currentData, sivImage)
                 }
-
             }
         }
     }
 
-    inner class PageViewHolder( val binding: NewsItemBinding) :
+    inner class PageViewHolder(val binding: NewsItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        fun bind(data: NewsListModel, onItemClick: ((news: NewsListModel) -> Unit)?) {
+        fun bind(data: NewsListModel) {
             binding.tvTitle.text = data.title
             binding.sivImage.transitionName = data.image
             binding.sivImage.load(data.image){
@@ -55,9 +48,6 @@ class NewsAdapter(private val onClickListener: OnClickListener) : PagingDataAdap
                 crossfade(100)
             }
             binding.tvPublishedTime.text = convertDate(data.date)
-            binding.newsItem.setOnClickListener {
-                onItemClick?.invoke(data)
-            }
         }
     }
 
@@ -67,15 +57,16 @@ class NewsAdapter(private val onClickListener: OnClickListener) : PagingDataAdap
                 oldItem: NewsListModel,
                 newItem: NewsListModel
             ): Boolean {
-                return oldItem.title == newItem.title
+                return oldItem.title == newItem.title &&
+                        oldItem.image == newItem.image
             }
 
             override fun areContentsTheSame(
                 oldItem: NewsListModel,
                 newItem: NewsListModel
             ): Boolean {
-                return oldItem.id == newItem.id &&
-                        oldItem.title == newItem.title
+                return oldItem.title == newItem.title &&
+                        oldItem.link == newItem.link
             }
         }
     }

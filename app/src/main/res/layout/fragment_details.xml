@@ -18,10 +18,12 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:fitsSystemWindows="true"
-            app:contentScrim="#BD2828"
+            app:contentScrim="#CECECE"
             app:layout_scrollFlags="exitUntilCollapsed|scroll">
 
+
             <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/clImage"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@color/white">
@@ -58,10 +60,10 @@
                         android:id="@+id/tvTime"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginEnd="5dp"
                         android:background="#9b2d30"
                         android:paddingHorizontal="5dp"
                         android:paddingVertical="3dp"
-                        android:layout_marginEnd="5dp"
                         android:textColor="@color/white"
                         android:textSize="15sp"
                         android:textStyle="bold"
@@ -96,9 +98,40 @@
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
-                app:layout_collapseMode="pin"
-                app:menu="@menu/menu_toolbar" />
+                app:layout_collapseMode="pin">
 
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <ImageButton
+                        android:id="@+id/btBack"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/rounded_button"
+                        android:padding="5dp"
+                        android:src="@drawable/arrow"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        tools:ignore="ContentDescription" />
+
+                    <ImageButton
+                        android:id="@+id/btShare"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="15dp"
+                        android:background="@drawable/rounded_button"
+                        android:padding="5dp"
+                        android:src="@drawable/share"
+                        app:layout_constraintBottom_toBottomOf="@id/btBack"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="@id/btBack"
+                        tools:ignore="ContentDescription" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+            </androidx.appcompat.widget.Toolbar>
         </com.google.android.material.appbar.CollapsingToolbarLayout>
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -170,6 +203,17 @@
                 app:layout_constraintTop_toBottomOf="@id/tvOtherNews"
                 tools:listitem="@layout/news_item" />
 
+            <ProgressBar
+                android:id="@+id/progressBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintVertical_bias="0.03"
+                android:visibility="gone"
+                />
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.core.widget.NestedScrollView>
 

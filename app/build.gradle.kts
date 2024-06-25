@@ -1,5 +1,3 @@
-
-
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -8,8 +6,6 @@ plugins {
     id("com.google.dagger.hilt.android")
     id("kotlin-parcelize")
     id("kotlin-kapt")
-
-
 }
 
 android {
@@ -44,6 +40,9 @@ android {
     }
     buildFeatures {
         viewBinding = true
+    }
+    hilt {
+        enableAggregatingTask = true
     }
 }
 

@@ -23,7 +23,7 @@ interface ApiService {
     suspend fun getSearchNews(
         @Query("page") page: Int,
         @Query("items") item: Int,
-        @Query("search") search: String
+        @Query("search") search: String?
     ): Response<List<NewsListModel>>
 
     //Запрос на получение деталей новости
