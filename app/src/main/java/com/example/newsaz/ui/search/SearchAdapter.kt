@@ -2,24 +2,21 @@ package com.example.newsaz.ui.search
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.ImageView
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import com.example.newsaz.data.model.newsmodel.NewsListModel
 import com.example.newsaz.databinding.NewsItemBinding
+import com.example.newsaz.ui.news.pagination.NewsAdapter.OnClickListener
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-class SearchAdapter: PagingDataAdapter<NewsListModel, SearchAdapter.SearchViewHolder>(DIFF_UTIL) {
-
-    private var onItemClick: ((news: NewsListModel) -> Unit)? = null
-    fun onItemClickListener(onItemClick: (news: NewsListModel) -> Unit) {
-        this.onItemClick = onItemClick
-    }
-
+class SearchAdapter(private val onClickListener: OnClickListener) :
+    PagingDataAdapter<NewsListModel, SearchAdapter.SearchViewHolder>(DIFF_UTIL) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SearchViewHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -28,25 +25,35 @@ class SearchAdapter: PagingDataAdapter<NewsListModel, SearchAdapter.SearchViewHo
     }
 
     override fun onBindViewHolder(holder: SearchViewHolder, position: Int) {
-        getItem(position)?.let { holder.bind(it, onItemClick) }
-        holder.setIsRecyclable(false)
-    }
-
-    inner class SearchViewHolder(private val binding: NewsItemBinding) :
-        RecyclerView.ViewHolder(binding.root) {
-        fun bind(data: NewsListModel, onItemClick: ((news: NewsListModel) -> Unit)?) {
-            binding.tvTitle.text = data.title
-            binding.sivImage.load(data.image){
-                crossfade(true)
-                crossfade(500)
-            }
-            binding.tvPublishedTime.text = convertDate(data.date)
-            binding.newsItem.setOnClickListener {
-                onItemClick?.invoke(data)
+        getItem(position)?.let { holder.bind(it) }
+        holder.setIsRecyclable(true)
+        val currentData = getItem(position)
+        if (currentData != null) {
+            holder.binding.apply {
+                sivImage.load(currentData.image)
+                sivImage.transitionName = currentData.image
+                root.setOnClickListener {
+                    onClickListener.onClick(currentData, sivImage)
+                }
             }
         }
     }
 
+    inner class SearchViewHolder(val binding: NewsItemBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+        fun bind(data: NewsListModel) {
+            binding.tvTitle.text = data.title
+            binding.sivImage.load(data.image) {
+                crossfade(true)
+                crossfade(200)
+            }
+            binding.tvPublishedTime.text = convertDate(data.date)
+        }
+    }
+
+    class OnClickListener(val clickListener: (NewsListModel, ImageView) -> Unit) {
+        fun onClick(data: NewsListModel, imageView: ImageView) = clickListener(data, imageView)
+    }
 
     companion object {
         val DIFF_UTIL = object : DiffUtil.ItemCallback<NewsListModel>() {
@@ -54,15 +61,16 @@ class SearchAdapter: PagingDataAdapter<NewsListModel, SearchAdapter.SearchViewHo
                 oldItem: NewsListModel,
                 newItem: NewsListModel
             ): Boolean {
-                return oldItem.title == newItem.title
+                return oldItem.title == newItem.title &&
+                        oldItem.image == newItem.image
             }
 
             override fun areContentsTheSame(
                 oldItem: NewsListModel,
                 newItem: NewsListModel
             ): Boolean {
-                return oldItem.id == newItem.id &&
-                        oldItem.title == newItem.title
+                return oldItem.title == newItem.title &&
+                        oldItem.link == newItem.link
 
             }
         }
@@ -75,9 +83,7 @@ class SearchAdapter: PagingDataAdapter<NewsListModel, SearchAdapter.SearchViewHo
             val zoneDateTime = ZonedDateTime.parse(dateAPI)
             val localZonedDateTime = zoneDateTime.withZoneSameInstant(ZoneId.of("Asia/Baku"))
             val date = localZonedDateTime.format(
-                DateTimeFormatter.ofPattern("dd MMMM, HH:mm").withLocale(
-                    Locale("ru_RU")
-                )
+                DateTimeFormatter.ofPattern("dd MMMM, HH:mm").withLocale(Locale("ru_RU"))
             )
             return date
 
@@ -90,6 +96,4 @@ class SearchAdapter: PagingDataAdapter<NewsListModel, SearchAdapter.SearchViewHo
             return date
         }
     }
-
-
 }

@@ -1,5 +1,7 @@
 package com.example.newsaz.ui.news.pagination
 
+import android.util.Log
+import androidx.paging.PagingData
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.example.newsaz.data.model.newsmodel.NewsListModel
@@ -9,16 +11,18 @@ import retrofit2.HttpException
 class NewsPagingSource(
     private val repository: Repository,
     private val category: Int?
-): PagingSource<Int, NewsListModel>() {
+) : PagingSource<Int, NewsListModel>() {
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, NewsListModel> {
         return try {
             val currentPage = params.key ?: 1
-
-            val response = repository.getNews(currentPage,10, category)
+            val response = repository.getNewsRepo(currentPage, 10, category)
             val data = response.body()
             val responseData = mutableListOf<NewsListModel>()
-            data?.let { responseData.addAll(it) }
+            data?.let {
+                responseData.addAll(it)
+            }
+            Log.d("load_source", "load: $responseData")
 
             LoadResult.Page(
                 data = responseData,
@@ -26,10 +30,9 @@ class NewsPagingSource(
                 nextKey = currentPage.plus(1)
             )
 
-        }catch (e:Exception){
+        } catch (e: Exception) {
             LoadResult.Error(e)
-
-        }catch (http: HttpException){
+        } catch (http: HttpException) {
             LoadResult.Error(http)
         }
     }

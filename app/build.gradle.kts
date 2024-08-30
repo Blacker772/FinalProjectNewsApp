@@ -1,5 +1,3 @@
-
-
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -8,8 +6,6 @@ plugins {
     id("com.google.dagger.hilt.android")
     id("kotlin-parcelize")
     id("kotlin-kapt")
-
-
 }
 
 android {
@@ -45,6 +41,9 @@ android {
     buildFeatures {
         viewBinding = true
     }
+    hilt {
+        enableAggregatingTask = true
+    }
 }
 
 dependencies {
@@ -65,6 +64,7 @@ dependencies {
     implementation(libs.room.runtime)
     implementation(libs.androidx.paging.common.android)
     implementation(libs.androidx.paging.runtime.ktx)
+    implementation(libs.androidx.activity)
     annotationProcessor(libs.androidx.room.room.compiler2)
     //noinspection KaptUsageInsteadOfKsp
     kapt(libs.androidx.room.room.compiler2)
@@ -98,4 +98,6 @@ dependencies {
     implementation(libs.androidx.paging.common.ktx)
     implementation(libs.androidx.paging.runtime.ktx)
 
+    val lottieVersion = "3.4.0"
+    implementation("com.airbnb.android:lottie:$lottieVersion")
 }

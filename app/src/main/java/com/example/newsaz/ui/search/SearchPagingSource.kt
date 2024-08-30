@@ -8,13 +8,13 @@ import retrofit2.HttpException
 
 class SearchPagingSource(
     private val repository: Repository,
-    private val search: String
-): PagingSource<Int, NewsListModel>() {
+    private val search: String?
+) : PagingSource<Int, NewsListModel>() {
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, NewsListModel> {
         return try {
             val currentPage = params.key ?: 1
-            val response = repository.getSearchNewsRepo(currentPage,10, search)
+            val response = repository.getSearchNewsRepo(currentPage, 10, search)
             val data = response.body()!!
             val responseData = mutableListOf<NewsListModel>()
             responseData.addAll(data)
@@ -25,10 +25,10 @@ class SearchPagingSource(
                 nextKey = currentPage.plus(1)
             )
 
-        }catch (e:Exception){
+        } catch (e: Exception) {
             LoadResult.Error(e)
 
-        }catch (http: HttpException){
+        } catch (http: HttpException) {
             LoadResult.Error(http)
         }
     }
