@@ -10,7 +10,7 @@
 
     <style name="CustomSearchView" parent="Widget.AppCompat.SearchView">
         <item name="queryHint">Search</item>
-        <item name="searchIcon">@null</item> <!-- Убирает иконку поиска -->
+<!--        <item name="searchIcon">@null</item> &lt;!&ndash; Убирает иконку поиска &ndash;&gt;-->
         <item name="closeIcon">@null</item> <!-- Убирает иконку закрытия -->
         <item name="submitBackground">@null</item> <!-- Убирает фон кнопки отправки -->
         <item name="goIcon">@null</item> <!-- Убирает иконку "Go" -->

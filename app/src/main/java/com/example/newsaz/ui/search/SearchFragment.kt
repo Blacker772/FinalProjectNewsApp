@@ -115,8 +115,7 @@ class SearchFragment : Fragment() {
     //Метод для инициализации RV
     private fun initRV() {
         val actionListener = SearchAdapter.OnClickListener { newsListModel, imageView ->
-            val action: NavDirections =
-                SearchFragmentDirections.actionSearchFragmentToDetailsFragment(newsListModel)
+            val action: NavDirections = SearchFragmentDirections.actionSearchFragmentToDetailsFragment(newsListModel)
             val extras = FragmentNavigatorExtras(
                 imageView to newsListModel.image
             )

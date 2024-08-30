@@ -1,4 +1,4 @@
-package com.example.newsaz.ui.details
+package com.example.newsaz.ui.details.other
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -9,13 +9,14 @@ import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import com.example.newsaz.data.model.newsmodel.NewsListModel
 import com.example.newsaz.databinding.NewsItemBinding
-import com.example.newsaz.ui.news.pagination.NewsAdapter.OnClickListener
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-class OtherNewsAdapter() : ListAdapter<NewsListModel, OtherNewsAdapter.OtherNewsViewHolder>(DIFF_UTIL) {
+class OtherNewsAdapter(private val onClickListener: OnClickListener) : ListAdapter<NewsListModel, OtherNewsAdapter.OtherNewsViewHolder>(
+    DIFF_UTIL
+) {
 
     private var onItemClick: ((news: NewsListModel) -> Unit)? = null
     fun onItemClickListener(onItemClick: (news: NewsListModel) -> Unit) {
@@ -30,16 +31,16 @@ class OtherNewsAdapter() : ListAdapter<NewsListModel, OtherNewsAdapter.OtherNews
 
     override fun onBindViewHolder(holder: OtherNewsViewHolder, position: Int) {
         holder.bind(currentList[position], onItemClick)
-//        val currentData = currentList[position]
-//        if (currentData != null){
-//            holder.binding.apply {
-//                sivImage.load(currentData.image)
-//                sivImage.transitionName = currentData.image
-//                root.setOnClickListener {
-//                    onClickListener.onClick(currentData, sivImage)
-//                }
-//            }
-//        }
+        val currentData = currentList[position]
+        if (currentData != null){
+            holder.binding.apply {
+                sivImage.load(currentData.image)
+                sivImage.transitionName = currentData.image
+                root.setOnClickListener {
+                    onClickListener.onClick(currentData, sivImage)
+                }
+            }
+        }
     }
 
     inner class OtherNewsViewHolder(val binding: NewsItemBinding) :
@@ -59,9 +60,9 @@ class OtherNewsAdapter() : ListAdapter<NewsListModel, OtherNewsAdapter.OtherNews
         }
     }
 
-//    class OnClickListener(val clickListener: (NewsListModel, ImageView) -> Unit) {
-//        fun onClick(data: NewsListModel, imageView: ImageView) = clickListener(data, imageView)
-//    }
+    class OnClickListener(val clickListener: (NewsListModel, ImageView) -> Unit) {
+        fun onClick(data: NewsListModel, imageView: ImageView) = clickListener(data, imageView)
+    }
 
     companion object {
         val DIFF_UTIL = object : DiffUtil.ItemCallback<NewsListModel>() {

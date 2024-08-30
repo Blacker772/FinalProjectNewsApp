@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
@@ -27,7 +28,8 @@ class NewsViewModel @Inject constructor(
 ) : ViewModel() {
 
     //Создаю переменную для хранения состояния
-    private val result: Flow<PagingData<NewsListModel>> = getNews(null)
+    var result: Flow<PagingData<NewsListModel>> = getNews(null)
+
     val uiState: StateFlow<UiState> = result
         .map { data ->
             UiState.Data(data, false)
@@ -41,7 +43,7 @@ class NewsViewModel @Inject constructor(
             initialValue = UiState.Loading(true)
         )
 
-    //Метод получения первоначального списка нвостей
+    //Метод получения первоначального списка новостей
     fun getNews(category: Int?): Flow<PagingData<NewsListModel>> {
         return Pager(
             PagingConfig(1, prefetchDistance = 10, enablePlaceholders = false)
@@ -50,7 +52,14 @@ class NewsViewModel @Inject constructor(
         }
             .flow
             .cachedIn(viewModelScope)
+
     }
+
+
+
+
+
+
 
     //LiveData для хранения списка категорий
     private val _liveData = MutableLiveData<List<NewsCategoryModel>>()

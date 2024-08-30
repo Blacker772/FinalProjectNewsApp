@@ -7,7 +7,6 @@ import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
-import com.example.newsaz.R
 import com.example.newsaz.data.model.newsmodel.NewsListModel
 import com.example.newsaz.databinding.NewsItemBinding
 import java.time.ZoneId
@@ -15,7 +14,7 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-class NewsAdapter(private val onClickListener: OnClickListener? = null) : PagingDataAdapter<NewsListModel, NewsAdapter.PageViewHolder>(DIFF_UTIL) {
+class NewsAdapter(private val onClickListener: OnClickListener) : PagingDataAdapter<NewsListModel, NewsAdapter.PageViewHolder>(DIFF_UTIL) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PageViewHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -25,14 +24,14 @@ class NewsAdapter(private val onClickListener: OnClickListener? = null) : Paging
 
     override fun onBindViewHolder(holder: PageViewHolder, position: Int) {
         getItem(position)?.let { holder.bind(it) }
-        holder.setIsRecyclable(true)
+        holder.setIsRecyclable(false)
         val currentData = getItem(position)
         if(currentData != null){
             holder.binding.apply {
                 sivImage.load(currentData.image)
                 sivImage.transitionName = currentData.image
                 root.setOnClickListener{
-                    onClickListener?.onClick(currentData, sivImage)
+                    onClickListener.onClick(currentData, sivImage)
                 }
             }
         }
@@ -42,7 +41,6 @@ class NewsAdapter(private val onClickListener: OnClickListener? = null) : Paging
         RecyclerView.ViewHolder(binding.root) {
         fun bind(data: NewsListModel) {
             binding.tvTitle.text = data.title
-            binding.sivImage.transitionName = data.image
             binding.sivImage.load(data.image){
                 crossfade(true)
                 crossfade(100)

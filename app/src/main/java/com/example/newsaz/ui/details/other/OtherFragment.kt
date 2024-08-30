@@ -1,4 +1,4 @@
-package com.example.newsaz.ui.details
+package com.example.newsaz.ui.details.other
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -9,37 +9,27 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebViewClient
-import android.widget.Toast
-import androidx.core.view.doOnPreDraw
-import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.NavDirections
-import androidx.navigation.fragment.FragmentNavigatorExtras
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.transition.TransitionInflater
 import coil.load
-
-import com.example.newsaz.databinding.FragmentDetailsBinding
-import com.example.newsaz.ui.details.other.OtherNewsAdapter
+import com.example.newsaz.databinding.FragmentOtherBinding
+import com.example.newsaz.ui.details.DetailViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
 @AndroidEntryPoint
-class DetailsFragment : Fragment() {
+class OtherFragment : Fragment() {
 
-    private lateinit var binding: FragmentDetailsBinding
+    private lateinit var binding: FragmentOtherBinding
     private val viewModel: DetailViewModel by viewModels()
-    private lateinit var otherAdapter: OtherNewsAdapter
-    private val args: DetailsFragmentArgs by navArgs()
+    private val args: OtherFragmentArgs by navArgs()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        binding = FragmentDetailsBinding.inflate(inflater, container, false)
-        initRV()
+        binding = FragmentOtherBinding.inflate(inflater, container, false)
         animation(requireContext())
         return binding.root
     }
@@ -47,27 +37,12 @@ class DetailsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        //Откладывает анимацию, пока информация не прогрузится
-        postponeEnterTransition()
-        //Запускает отложенную анимацию
-        binding.rvOtherNews.doOnPreDraw {
-            startPostponedEnterTransition()
-        }
-
         //Получение данных из аргументов
-        val category = args.news?.categoryId
         val id = args.news?.id
         val link = args.news?.link
         val news = args.news?.image
         binding.sivImage.transitionName = news
 
-        //Получение списка "другие новости"
-        lifecycleScope.launch {
-            viewModel.getNews(category)
-            viewModel.data.collectLatest {
-                onChangeState(it)
-            }
-        }
 
         //Кнопка "Назад"
         binding.btBack.setOnClickListener {
@@ -119,48 +94,6 @@ class DetailsFragment : Fragment() {
             )
         }
     }
-
-    //Инициализация RV
-    private fun initRV() {
-        val actionListener = OtherNewsAdapter.OnClickListener { newsListModel, imageView ->
-            val action: NavDirections = DetailsFragmentDirections.actionDetailsFragmentToOtherFragment(newsListModel)
-            val extras = FragmentNavigatorExtras(
-                imageView to newsListModel.image
-            )
-            findNavController().navigate(action, extras)
-        }
-        binding.rvOtherNews.apply {
-            otherAdapter = OtherNewsAdapter(actionListener)
-            layoutManager = LinearLayoutManager(
-                requireContext(),
-                LinearLayoutManager.VERTICAL,
-                false
-            )
-            adapter = otherAdapter
-        }
-    }
-
-    //Обработка состояния
-    private fun onChangeState(state: UiStateDetails) {
-        when (state) {
-            is UiStateDetails.Loading -> {
-                binding.progressBar.isVisible = state.isLoading
-            }
-
-            is UiStateDetails.Error -> {
-                Toast.makeText(requireContext(), "${state.message}", Toast.LENGTH_SHORT).show()
-            }
-
-            is UiStateDetails.Data -> {
-                otherAdapter.submitList(state.data)
-                binding.progressBar.isVisible = state.isLoading
-            }
-
-            is UiStateDetails.None -> ""
-        }
-    }
-
-    //Метод для анимации
     private fun animation(context: Context) {
         val anim = TransitionInflater.from(context).inflateTransition(android.R.transition.move)
         sharedElementEnterTransition = anim

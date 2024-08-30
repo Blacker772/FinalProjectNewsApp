@@ -12,20 +12,25 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.Toast
+import androidx.core.os.bundleOf
 import androidx.core.view.GravityCompat
 import androidx.core.view.doOnPreDraw
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavDirections
 import androidx.navigation.fragment.FragmentNavigatorExtras
 import androidx.navigation.fragment.findNavController
 import androidx.paging.LoadState
+import androidx.paging.PagingData
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.newsaz.Constants
 import com.example.newsaz.R
 import com.example.newsaz.databinding.FragmentNewsBinding
 import com.example.newsaz.ui.news.pagination.NewsAdapter
+import com.example.newsaz.ui.search.SearchAdapter
+import com.example.newsaz.ui.search.SearchFragmentDirections
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -41,27 +46,40 @@ class NewsFragment : Fragment() {
     private lateinit var sharedPreferences: SharedPreferences
     private lateinit var header: View
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
         binding = FragmentNewsBinding.inflate(inflater, container, false)
         initRV()
         animation(requireContext())
+
         //Создал SharedPreferences для хранения выбранного языка
         sharedPreferences = requireContext().getSharedPreferences("my_prefs", Context.MODE_PRIVATE)
+
         //Создаю переменную для хранения выбранного языка
         val selectedLanguage = sharedPreferences.getString("language", Constants.LANGUAGE) ?: "ru"
+        val selectedSearchText =
+            sharedPreferences.getString("text", Constants.SEARCH_TEXT) ?: "Поиск..."
+        Log.d("textSearch", "onCreateView: $selectedSearchText")
+
         //Записываю выбранный язык в константу
         Constants.LANGUAGE = selectedLanguage
+        Log.d("language", "onCreateView: ${Constants.LANGUAGE}")
+        Constants.SEARCH_TEXT = selectedSearchText
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        //Сворачивание меню
+        //Открываю меню
         binding.btMenu.setOnClickListener {
             binding.drawerLayout.openDrawer(GravityCompat.END)
         }
 
+        Log.d("language", "onViewCreated: ${Constants.LANGUAGE}")
         //Откладывает анимацию, пока информация не прогрузится
         postponeEnterTransition()
         //Запускает отложенную анимацию
@@ -71,10 +89,18 @@ class NewsFragment : Fragment() {
 
         //Загрузка новостей при открытии приложения
         lifecycleScope.launch {
+            newsAdapter.submitData(PagingData.empty())
             viewModel.uiState.collectLatest {
                 onChangeState(it)
             }
         }
+        lifecycleScope.launch {
+            newsAdapter.refresh()
+            viewModel.getNews(null).collect {
+                newsAdapter.submitData(it)
+            }
+        }
+
         // Обработка состояния загрузки адаптера
         lifecycleScope.launch {
             newsAdapter.loadStateFlow.collectLatest { loadState ->
@@ -98,13 +124,23 @@ class NewsFragment : Fragment() {
         //Доступ к header
         header = binding.navigationView.getHeaderView(0)
 
+        //Окрытие поиска при нажатии на search
+        val searchButton = header.findViewById<Button>(R.id.search_button)
+        searchButton.text = Constants.SEARCH_TEXT
+        searchButton.setOnClickListener {
+            findNavController().navigate(R.id.action_newsFragment_to_searchFragment)
+        }
+
         //Слушатель нажатий на кнопку Русского языка
         val ruButton = header.findViewById<ImageView>(R.id.btRussian)
         ruButton.setOnClickListener {
             if (Constants.LANGUAGE == "ru") {
                 Toast.makeText(requireContext(), "Этот язык уже выбран", Toast.LENGTH_SHORT).show()
             } else {
+                Constants.SEARCH_TEXT = "Поиск..."
                 Constants.LANGUAGE = "ru"
+                searchButton.text = Constants.SEARCH_TEXT
+                newsAdapter.refresh()
                 lifecycleScope.launch {
                     viewModel.getNews(null).collectLatest {
                         newsAdapter.submitData(viewLifecycleOwner.lifecycle, it)
@@ -120,6 +156,7 @@ class NewsFragment : Fragment() {
                     }
                 }
                 sharedPreferences.edit().putString("language", Constants.LANGUAGE).apply()
+                sharedPreferences.edit().putString("text", Constants.SEARCH_TEXT).apply()
                 binding.drawerLayout.closeDrawers()
             }
         }
@@ -130,7 +167,10 @@ class NewsFragment : Fragment() {
             if (Constants.LANGUAGE == "az") {
                 Toast.makeText(requireContext(), "Этот язык уже выбран", Toast.LENGTH_SHORT).show()
             } else {
+                Constants.SEARCH_TEXT = "Axtar..."
                 Constants.LANGUAGE = "az"
+                searchButton.text = Constants.SEARCH_TEXT
+                newsAdapter.refresh()
                 lifecycleScope.launch {
                     viewModel.getNews(null).collectLatest {
                         newsAdapter.submitData(viewLifecycleOwner.lifecycle, it)
@@ -146,6 +186,7 @@ class NewsFragment : Fragment() {
                     }
                 }
                 sharedPreferences.edit().putString("language", Constants.LANGUAGE).apply()
+                sharedPreferences.edit().putString("text", Constants.SEARCH_TEXT).apply()
                 binding.drawerLayout.closeDrawers()
             }
         }
@@ -156,10 +197,13 @@ class NewsFragment : Fragment() {
             if (Constants.LANGUAGE == "en") {
                 Toast.makeText(requireContext(), "Этот язык уже выбран", Toast.LENGTH_SHORT).show()
             } else {
+                Constants.SEARCH_TEXT = "Search..."
                 Constants.LANGUAGE = "en"
+                searchButton.text = Constants.SEARCH_TEXT
+                newsAdapter.refresh()
                 lifecycleScope.launch {
                     viewModel.getNews(null).collectLatest {
-                        newsAdapter.submitData(viewLifecycleOwner.lifecycle, it)
+                        newsAdapter.submitData(it)
                     }
                 }
                 CoroutineScope(Dispatchers.Main).launch {
@@ -172,14 +216,9 @@ class NewsFragment : Fragment() {
                     }
                 }
                 sharedPreferences.edit().putString("language", Constants.LANGUAGE).apply()
+                sharedPreferences.edit().putString("text", Constants.SEARCH_TEXT).apply()
                 binding.drawerLayout.closeDrawers()
             }
-        }
-
-        //Окрытие поиска при нажатии на search
-        val searchButton = header.findViewById<Button>(R.id.search_button)
-        searchButton.setOnClickListener {
-            findNavController().navigate(R.id.action_newsFragment_to_searchFragment)
         }
 
         //Новости при нажатии на категорию
@@ -195,12 +234,13 @@ class NewsFragment : Fragment() {
 
         //Обновление новостей при свайпе
         binding.swipeRefreshLayout.setOnRefreshListener {
-            binding.swipeRefreshLayout.isRefreshing = false
+            newsAdapter.refresh()
             lifecycleScope.launch {
                 viewModel.getNews(null).collect {
                     newsAdapter.submitData(it)
                 }
             }
+            binding.swipeRefreshLayout.isRefreshing = false
         }
     }
 
@@ -213,7 +253,8 @@ class NewsFragment : Fragment() {
     //Метод для инициализации RV
     private fun initRV() {
         val actionListener = NewsAdapter.OnClickListener { newsListModel, imageView ->
-            val action: NavDirections = NewsFragmentDirections.actionNewsFragmentToDetailsFragment(newsListModel)
+            val action: NavDirections =
+                NewsFragmentDirections.actionNewsFragmentToDetailsFragment(newsListModel)
             val extras = FragmentNavigatorExtras(
                 imageView to newsListModel.image
             )
@@ -236,17 +277,14 @@ class NewsFragment : Fragment() {
             is UiState.Loading -> {
                 binding.progressBar.isVisible = state.isLoading
             }
-
             is UiState.Error -> {
                 Toast.makeText(requireContext(), "${state.message}", Toast.LENGTH_SHORT).show()
             }
-
             is UiState.Data -> {
                 newsAdapter.submitData(state.data)
                 binding.progressBar.isVisible = state.isLoading
             }
-
-            UiState.None -> ""
+            else -> {}
         }
     }
 }

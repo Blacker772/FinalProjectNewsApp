@@ -1,5 +1,7 @@
 package com.example.newsaz.ui.news.pagination
 
+import android.util.Log
+import androidx.paging.PagingData
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.example.newsaz.data.model.newsmodel.NewsListModel
@@ -17,13 +19,17 @@ class NewsPagingSource(
             val response = repository.getNewsRepo(currentPage, 10, category)
             val data = response.body()
             val responseData = mutableListOf<NewsListModel>()
-            data?.let { responseData.addAll(it) }
+            data?.let {
+                responseData.addAll(it)
+            }
+            Log.d("load_source", "load: $responseData")
 
             LoadResult.Page(
                 data = responseData,
                 prevKey = if (currentPage == 1) null else -1,
                 nextKey = currentPage.plus(1)
             )
+
         } catch (e: Exception) {
             LoadResult.Error(e)
         } catch (http: HttpException) {
